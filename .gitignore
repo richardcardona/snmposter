@@ -5,3 +5,5 @@ include
 lib
 lib64
 agents
+*.egg-info
+.idea

@@ -1,5 +1,6 @@
 ##############################################################################
 #
+# Copyright (c) 2014, Richard Cardona <richard@cardona.us>
 # Copyright (C) 2010, Chet Luther <chet.luther@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,7 +20,7 @@
 
 from setuptools import setup, find_packages
 
-version = '1.0.3'
+version = '1.0.4'
 
 setup(
     name='snmposter',

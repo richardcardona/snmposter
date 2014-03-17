@@ -1,5 +1,6 @@
 #######################################################################
 #
+# Copyright (c) 2014, Richard Cardona <richard@cardona.us>
 # Copyright (C) 2010, Chet Luther <chet.luther@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -25,6 +26,8 @@ import sys
 import os
 import re
 import csv
+import os.path
+import time
 
 
 # twistedsnmp has a bug that causes it to fail to properly convert
@@ -92,15 +95,22 @@ class SNMPosterFactory:
 class SNMPoster:
     oidData = {}
     sortedOids = []
+    fullPath = ''
+    fileStamp = ''
+    dataStore = None
 
     def __init__(self, ip, filename):
         self.ip = ip
+        self.fullPath = filename
+
+    def process_file(self, filename):
         self.oids = {}
 
         oid = ''
         type_ = ''
         value = []
 
+        self.fileStamp = time.ctime(os.path.getmtime(filename))
         snmpwalk = open(filename, 'r')
         for line in snmpwalk:
             line = line.rstrip()
@@ -183,17 +193,28 @@ class SNMPoster:
         return conv
 
     def start(self):
+        self.process_file(self.fullPath)
+        self.dataStore = bisectoidstore.BisectOIDStore(
+            OIDs=self.oids,
+        )
         reactor.listenUDP(
             161, agentprotocol.AgentProtocol(
                 snmpVersion='v2c',
-                agent=agent.Agent(
-                    dataStore=bisectoidstore.BisectOIDStore(
-                        OIDs=self.oids,
-                        ),
-                    ),
+                agent=agent.Agent(dataStore=self.dataStore),
                 ),
                 interface=self.ip,
             )
+        self.checkFile()
+
+    def reload(self):
+        self.process_file(self.fullPath)
+        self.dataStore.update(self.oids)
+
+    def checkFile(self):
+        testStamp = time.ctime(os.path.getmtime(self.fullPath))
+        if testStamp != self.fileStamp:
+            self.reload()
+        reactor.callLater(1, self.checkFile)
 
     def run(self):
         reactor.callWhenRunning(self.start)

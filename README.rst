@@ -8,6 +8,9 @@ This tool allows you to take the output of an snmpwalk command and then pretend
 to be the agent that it was gathered from. This can be useful when you're
 developing SNMP management tools.
 
+This fork of snmposter re-reads snmp walk files if modified on disk without
+restarting.
+
 Requirements
 =============================================================================
 
